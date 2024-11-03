@@ -162,3 +162,5 @@ cython_debug/
 #.idea/
 
 DeepfakeBench/
+binary_deepfake_detection/
+datasets/
