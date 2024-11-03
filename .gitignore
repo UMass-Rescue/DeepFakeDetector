@@ -161,6 +161,11 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+DeepfakeBench/
+binary_deepfake_detection/
+datasets/
+
 video_detector/results
 video_detector/weights
 video_detector/SDFVD
+
