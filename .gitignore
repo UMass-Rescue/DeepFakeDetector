@@ -164,3 +164,8 @@ cython_debug/
 DeepfakeBench/
 binary_deepfake_detection/
 datasets/
+
+video_detector/results
+video_detector/weights
+video_detector/SDFVD
+
