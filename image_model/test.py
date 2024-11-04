@@ -1,6 +1,4 @@
 import argparse
-from os.path import join
-
 
 from torchmetrics.functional.classification import accuracy
 import torch
