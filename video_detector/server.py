@@ -1,20 +1,85 @@
 from typing import TypedDict
-from flask_ml.flask_ml_server.models import BatchTextInput, ResponseBody, BatchTextResponse, TextResponse
+from flask_ml.flask_ml_server import MLServer
+from flask_ml.flask_ml_server.models import (
+    BatchFileInput,
+    BatchFileResponse,
+    FileResponse, ResponseType, FileType,
+    InputSchema,
+    InputType,
+    ResponseBody,
+    TaskSchema,
+)
+from video_evaluator import VideoEvaluator  
+import pdb
 
-class TransformCaseInputs(TypedDict):
-    text_inputs: BatchTextInput
+# Initialize Flask-ML server
+server = MLServer(__name__)
 
-class TransformCaseParameters(TypedDict):
-    to_case: str # 'upper' or 'lower'
+# Define input types
+class DeepfakeDetectionInputs(TypedDict):
+    video_paths: BatchFileInput  # Accepts multiple video file paths
 
-@server.route("/transform_case")
-def transform_case(inputs: TransformCaseInputs, parameters: TransformCaseParameters) -> ResponseBody:
-    to_upper: bool = parameters['to_case'] == 'upper'
+class DeepfakeDetectionParameters(TypedDict):
+    output_path: str
+
+# def create_deepfake_detection_task_schema() -> TaskSchema:
+#     # Define the input schema for video paths
+#     input_schema = InputSchema(
+#         key="video_paths",
+#         label="Videos to Process",
+#         input_type=InputType.BATCHFILE
+#     )
+#     # Define the parameter schema for detection threshold
+#     # parameter_schema = ParameterSchema(
+#     #     key="detection_threshold",
+#     #     label="Detection Threshold",
+#     #     type="number",
+#     #     default=0.5
+#     # )
+#     parameter_schema = {}
+#     return TaskSchema(
+#         inputs=[input_schema],
+#         parameters=[parameter_schema]
+#     )
+
+@server.route(
+    "/detect_deepfake",
+    # task_schema_func=create_deepfake_detection_task_schema,
+    # short_title="Deepfake Detection",
+    # order=0
+)
+def detect_deepfake(inputs: DeepfakeDetectionInputs, parameters: DeepfakeDetectionParameters) -> ResponseBody:    
+    # Initialize the VideoEvaluator with model and output paths
+    model_path = "path/to/your/model.pth"  # Path to the pre-trained model
+    output_path = parameters['output_path']        # Directory to save processed videos
+    evaluator = VideoEvaluator(model_path=model_path, output_path=output_path, cuda=False)
     
-    outputs = []
-    for text_input in inputs['text_inputs'].texts:
-        raw_text = text_input.text
-        processed_text = raw_text.upper() if to_upper else raw_text.lower()
-        outputs.append(TextResponse(value=processed_text, title=raw_text))
+    # Process each video file path and store the output paths
+    output_paths = []
+    for video_path in inputs['video_paths'].files:
+        # pdb.set_trace()
+        # Run the evaluation
+        processed_video_path = evaluator.evaluate_video(video_path.path)
 
-    return ResponseBody(root=BatchTextResponse(texts=outputs))
+        if processed_video_path is not None:
+            # Construct FileResponse with required fields
+            output_paths.append(
+                FileResponse(
+                    output_type=ResponseType.FILE,
+                    path=processed_video_path,
+                    title=f"Processed {video_path}",
+                    file_type=FileType.VIDEO 
+                )
+            )
+        else:
+            # Handle the case where processed_video_path is None
+            print(f"Failed to process video: {video_path.path}")
+            
+    # Return the processed file paths as a BatchFileResponse
+    return ResponseBody(root=BatchFileResponse(files=output_paths))
+
+#python detect_from_video.py -i /Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/SDFVD/videos_fake/vs1.mp4 -o /Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/results
+
+if __name__ == "__main__":
+    # Run the server
+    server.run()
