@@ -14,7 +14,6 @@ class defaultDataset(Dataset):
         self.images = []
         for image_path in listdir(dataset_path):
             if image_path.lower().endswith(".jpg") or image_path.lower().endswith(".png") or image_path.lower().endswith(".jpeg"):
-                print(image_path)
                 self.images.append(dataset_path + "/" + image_path + ("F" if image_path[0] == "F" else "R"))
         
     def __len__(self):
