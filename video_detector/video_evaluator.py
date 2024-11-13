@@ -94,6 +94,8 @@ class VideoEvaluator:
     #     writer.release()
     #     print(f'Finished! Output saved under {self.output_path}')
     #     return self.output_path
+
+    
     def evaluate_video(self, video_path, start_frame=0, end_frame=None):
         print(f'Starting: {video_path}')
         

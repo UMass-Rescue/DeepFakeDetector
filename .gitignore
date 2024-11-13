@@ -168,4 +168,4 @@ datasets/
 video_detector/results
 video_detector/weights
 video_detector/SDFVD
-
+video_detector/DeepfakeTIMIT

@@ -1,5 +1,5 @@
 from typing import TypedDict
-from flask_ml.flask_ml_server import MLServer
+from flask_ml.flask_ml_server import MLServer, load_file_as_string
 from flask_ml.flask_ml_server.models import (
     BatchFileInput,
     BatchFileResponse,
@@ -8,6 +8,22 @@ from flask_ml.flask_ml_server.models import (
     InputType,
     ResponseBody,
     TaskSchema,
+    DirectoryInput,
+    BatchDirectoryInput,
+    EnumParameterDescriptor,
+    EnumVal,
+    InputSchema,
+    InputType,
+    ParameterSchema,
+    ResponseBody,
+    TaskSchema,
+    MarkdownResponse,
+    TextParameterDescriptor,
+    TextInput,
+    BatchFileResponse,
+    IntParameterDescriptor,
+    FileResponse,
+    FileType,
 )
 from video_evaluator import VideoEvaluator  
 import pdb
@@ -15,44 +31,62 @@ import pdb
 # Initialize Flask-ML server
 server = MLServer(__name__)
 
+server.add_app_metadata(
+    name="Video DeepFake Detector",
+    author="UMass Rescue",
+    version="0.1.0",
+    info=load_file_as_string("app_info.md"),
+)
+
+def create_deepfake_detection_task_schema() -> TaskSchema:
+    return TaskSchema(
+        inputs=[
+            InputSchema(
+                key="video_paths",
+                label="Video Paths",
+                input_type=InputType.BATCHFILE,
+            ),
+            InputSchema(
+                key="output_directory",
+                label="Output Directory",
+                input_type=InputType.DIRECTORY,
+            ),
+        ],
+        parameters=[
+            ParameterSchema(
+                key="cuda",
+                label="CUDA",
+                value=EnumParameterDescriptor(
+                    enum_vals=[
+                        EnumVal(key="True", label="True"),
+                        EnumVal(key="False", label="False"),
+                    ],
+                    default="False",
+                )
+            ),
+        ],
+    )
+
 # Define input types
 class DeepfakeDetectionInputs(TypedDict):
     video_paths: BatchFileInput  # Accepts multiple video file paths
+    output_directory: DirectoryInput  # Accepts a directory path
 
 class DeepfakeDetectionParameters(TypedDict):
-    output_path: str
-
-# def create_deepfake_detection_task_schema() -> TaskSchema:
-#     # Define the input schema for video paths
-#     input_schema = InputSchema(
-#         key="video_paths",
-#         label="Videos to Process",
-#         input_type=InputType.BATCHFILE
-#     )
-#     # Define the parameter schema for detection threshold
-#     # parameter_schema = ParameterSchema(
-#     #     key="detection_threshold",
-#     #     label="Detection Threshold",
-#     #     type="number",
-#     #     default=0.5
-#     # )
-#     parameter_schema = {}
-#     return TaskSchema(
-#         inputs=[input_schema],
-#         parameters=[parameter_schema]
-#     )
+    cuda: str
 
 @server.route(
     "/detect_deepfake",
-    # task_schema_func=create_deepfake_detection_task_schema,
-    # short_title="Deepfake Detection",
-    # order=0
+    task_schema_func=create_deepfake_detection_task_schema,
+    short_title="Deepfake Detection",
+    order=0
 )
 def detect_deepfake(inputs: DeepfakeDetectionInputs, parameters: DeepfakeDetectionParameters) -> ResponseBody:    
     # Initialize the VideoEvaluator with model and output paths
     model_path = "path/to/your/model.pth"  # Path to the pre-trained model
-    output_path = parameters['output_path']        # Directory to save processed videos
-    evaluator = VideoEvaluator(model_path=model_path, output_path=output_path, cuda=False)
+    output_path = inputs["output_directory"].path # Directory to save processed videos
+    cuda_flag = parameters["cuda"] == "True"
+    evaluator = VideoEvaluator(model_path=model_path, output_path=output_path, cuda=cuda_flag)
     
     # Process each video file path and store the output paths
     output_paths = []
@@ -77,8 +111,6 @@ def detect_deepfake(inputs: DeepfakeDetectionInputs, parameters: DeepfakeDetecti
             
     # Return the processed file paths as a BatchFileResponse
     return ResponseBody(root=BatchFileResponse(files=output_paths))
-
-#python detect_from_video.py -i /Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/SDFVD/videos_fake/vs1.mp4 -o /Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/results
 
 if __name__ == "__main__":
     # Run the server
