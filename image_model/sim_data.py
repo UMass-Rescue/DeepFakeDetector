@@ -21,17 +21,28 @@ class defaultDataset(Dataset):
 
     def read_image(self, path):
         image = Image.open(path).convert('RGB')
+        original_res = image.size
         image = T.Compose([
             T.Resize(self.resolution + self.resolution // 8, interpolation=T.InterpolationMode.BILINEAR),
             T.CenterCrop(self.resolution),
             T.ToTensor(),
         ])(image)
-        return image
+        return image, original_res
+
+    def apply_transforms(self, image):
+        image = Image.fromarray(image)
+        return T.Compose([
+            T.Resize(self.resolution + self.resolution // 8, interpolation=T.InterpolationMode.BILINEAR),
+            T.CenterCrop(self.resolution),
+            T.ToTensor(),
+        ])(image)
     
     def __getitem__(self, i):
+        image, res = self.read_image(self.images[i][:-1])
         sample = {
             "image_path": self.images[i],
-            "image": self.read_image(self.images[i][:-1]),
+            "image": image,
             "is_real": torch.tensor([1 if self.images[i][-1] == "R" else 0]),
+            "original_res": res
         }
         return sample

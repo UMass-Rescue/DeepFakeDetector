@@ -2,11 +2,11 @@ import argparse
 
 from torchmetrics.functional.classification import accuracy
 import torch
-
+from retinaface import RetinaFace
 from sim_data import defaultDataset
 # from BNN github
 import model as model
-
+import matplotlib.pyplot as plt
 
 def args_func():
     parser = argparse.ArgumentParser()
@@ -25,6 +25,12 @@ def args_func():
     args = parser.parse_args()
     return args
 
+def get_area_ratio(img1, img2):
+    print(img1, img2)
+    h1, w1 = img1
+    h2, w2 = img2
+    return (h1 * w1) / (h2 * w2)
+
 
 if __name__ == "__main__":
     
@@ -32,6 +38,7 @@ if __name__ == "__main__":
         "dataset_path": "datasets/demo",
         "resolution": 224,
         "ckpt": "weights/dffd_M_unfrozen.ckpt",
+        "enable_facecrop": True,
         }
 
     args = args_func()
@@ -57,16 +64,24 @@ if __name__ == "__main__":
 
     for i in range(len(test_dataset))[:10000]:
         sample = test_dataset[i]
-        image = sample["image"].unsqueeze(0).to(device)
+        image = None
+        if cfg["enable_facecrop"]:
+                faces = RetinaFace.extract_faces(sample["image_path"][:-1], expand_face_area=35)       
+                if len(faces) > 0:
+                    image = test_dataset.apply_transforms(faces[0])
+                else:
+                    image = sample["image"]
+        else:
+            image = sample["image"]
+        image = image.unsqueeze(0).to(device)
         is_real = sample["is_real"].to(device)
         with torch.no_grad():
             output = net(image)
-            print(output)
             logit = output["logits"][0][0]
             temp = torch.sigmoid(logit)
-            print(temp)
             pred = 1 if temp > 0.9 else 0
             print(f"Image: {sample['image_path']}")
+            print(temp)
             print(f"Predicted: {pred}, Real: {is_real[0]}")
             logits.append(logit)
             label.append(is_real[0])
