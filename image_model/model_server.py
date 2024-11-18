@@ -2,8 +2,9 @@ import csv
 
 from typing import TypedDict
 from flask_ml.flask_ml_server.models import DirectoryInput, ResponseBody, FileResponse, TaskSchema, InputSchema, ParameterSchema, InputType, EnumParameterDescriptor, TextParameterDescriptor, EnumVal
-from flask_ml.flask_ml_server import MLServer
-
+from flask_ml.flask_ml_server import MLServer, load_file_as_string
+import warnings
+warnings.filterwarnings("ignore")
 from retinaface import RetinaFace
 import torch
 from sim_data import defaultDataset
@@ -52,8 +53,15 @@ cfg = {
         "resolution": 224,
         "ckpt": "weights/dffd_M_unfrozen.ckpt",
         }
+
 server = MLServer(__name__)
 
+server.add_app_metadata(
+    name="Image DeepFake Detector",
+    author="UMass Rescue",
+    version="0.1.0",
+    info=load_file_as_string("img-app-info.md"),
+)
 
 def predict(net, sample, device, dataset, disable_facecrop=False):
     image = None
@@ -78,6 +86,7 @@ def predict(net, sample, device, dataset, disable_facecrop=False):
 def give_prediction(inputs:Inputs, parameters:Parameters) -> ResponseBody:
     cfg["dataset_path"] = inputs["input_dataset"].path
     out = inputs["output_file"].path
+    out = f"{out}\\predictions" + str(int(torch.rand(1) * 1000)) + ".csv"
     data = defaultDataset(
         dataset_path=cfg["dataset_path"],
         resolution=cfg["resolution"]
@@ -92,7 +101,7 @@ def give_prediction(inputs:Inputs, parameters:Parameters) -> ResponseBody:
         sample = data[i]
         pred = predict(net, sample, device, data, disable_facecrop)
         res_list.append({"image_path": sample["image_path"][:-1], "prediction": "real" if pred == 1 else "fake"})
-
+    
     with open(out, mode="w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=["image_path", "prediction"])
         writer.writeheader()  # Write header row
