@@ -40,7 +40,7 @@ video_detector/
 ### 1. Clone the Repository
 ```bash
 git clone https://github.com/your-repo/video-deepfake-detector.git
-cd video-deepfake-detector
+cd video_detector
 ```
 
 ### 2. Create Virtual Environment
@@ -50,7 +50,7 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
 
 # OR using conda
-conda create -n deepfake-detector python=3.9
+conda create -n deepfake-detector python=3.11
 conda activate deepfake-detector
 ```
 
