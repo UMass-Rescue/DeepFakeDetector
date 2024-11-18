@@ -1,3 +1,4 @@
+import os
 from typing import TypedDict
 from flask_ml.flask_ml_server import MLServer, load_file_as_string
 from flask_ml.flask_ml_server.models import (
@@ -27,6 +28,7 @@ from flask_ml.flask_ml_server.models import (
 )
 from video_evaluator import VideoEvaluator  
 import pdb
+import json
 
 # Initialize Flask-ML server
 server = MLServer(__name__)
@@ -54,14 +56,15 @@ def create_deepfake_detection_task_schema() -> TaskSchema:
         ],
         parameters=[
             ParameterSchema(
-                key="cuda",
-                label="CUDA",
+                key="output_format",
+                label="Output Format",
                 value=EnumParameterDescriptor(
                     enum_vals=[
-                        EnumVal(key="True", label="True"),
-                        EnumVal(key="False", label="False"),
+                        EnumVal(key="json", label="Json"),
+                        EnumVal(key="json_verbose", label="Json Verbose"),
+                        EnumVal(key="video", label="Video"),
                     ],
-                    default="False",
+                    default="json",
                 )
             ),
         ],
@@ -73,7 +76,7 @@ class DeepfakeDetectionInputs(TypedDict):
     output_directory: DirectoryInput  # Accepts a directory path
 
 class DeepfakeDetectionParameters(TypedDict):
-    cuda: str
+    output_format: str
 
 @server.route(
     "/detect_deepfake",
@@ -83,34 +86,84 @@ class DeepfakeDetectionParameters(TypedDict):
 )
 def detect_deepfake(inputs: DeepfakeDetectionInputs, parameters: DeepfakeDetectionParameters) -> ResponseBody:    
     # Initialize the VideoEvaluator with model and output paths
-    model_path = "path/to/your/model.pth"  # Path to the pre-trained model
     output_path = inputs["output_directory"].path # Directory to save processed videos
-    cuda_flag = parameters["cuda"] == "True"
-    evaluator = VideoEvaluator(model_path=model_path, output_path=output_path, cuda=cuda_flag)
-    
-    # Process each video file path and store the output paths
-    output_paths = []
-    for video_path in inputs['video_paths'].files:
-        # pdb.set_trace()
-        # Run the evaluation
-        processed_video_path = evaluator.evaluate_video(video_path.path)
+    evaluator = VideoEvaluator(output_path=output_path)
 
-        if processed_video_path is not None:
-            # Construct FileResponse with required fields
-            output_paths.append(
-                FileResponse(
-                    output_type=ResponseType.FILE,
-                    path=processed_video_path,
-                    title=f"Processed {video_path}",
-                    file_type=FileType.VIDEO 
-                )
+    output_format = parameters["output_format"]
+    verbose = output_format == "json_verbose"
+    
+    results = []
+
+    if output_format in ["json", "json_verbose"]:
+        # Collect all results in a dictionary
+        all_results = {
+            "analysis_results": [],
+            "metadata": {
+                "total_videos": len(inputs['video_paths'].files),
+                "verbose_output": verbose,
+            }
+        }
+        
+        # Process each video and add its results to the dictionary
+        for video_path in inputs['video_paths'].files:
+            result = evaluator.evaluate_video(video_path.path, output_mode="json", verbose=verbose)
+            if result is not None:
+                all_results["analysis_results"].append({
+                    "video_path": str(video_path.path),
+                    "result": result
+                })
+            else:
+                all_results["analysis_results"].append({
+                    "video_path": str(video_path.path),
+                    "result": None,
+                    "error": "Processing failed"
+                })
+
+        # Save all results to a single JSON file
+        json_filename = "deepfake_detection_results.json"
+        json_path = os.path.join(output_path, json_filename)
+        
+        with open(json_path, 'w') as f:
+            json.dump(all_results, f, indent=2)
+        
+        # Return single JSON file response
+        results.append(
+            FileResponse(
+                output_type=ResponseType.FILE,
+                file_type=FileType.JSON,
+                path=str(json_path),
+                title="Deepfake Detection Results",
+                subtitle=f"Analysis for {len(inputs['video_paths'].files)} videos"
             )
-        else:
-            # Handle the case where processed_video_path is None
-            print(f"Failed to process video: {video_path.path}")
+        )
+    
+    else:  # video output
+        for video_path in inputs['video_paths'].files:
+            processed_video_path = evaluator.evaluate_video(
+                video_path.path,
+                output_mode="video",
+                verbose=False
+            )
+            
+            if processed_video_path is not None:
+                results.append(
+                    FileResponse(
+                        output_type=ResponseType.FILE,
+                        file_type=FileType.VIDEO,
+                        path=str(processed_video_path),
+                        title=f"Processed {video_path.path}",
+                        subtitle="Deepfake Detection Visualization"
+                    )
+                )
+            else:
+                print(f"Failed to process video: {video_path.path}")
             
     # Return the processed file paths as a BatchFileResponse
-    return ResponseBody(root=BatchFileResponse(files=output_paths))
+    return ResponseBody(
+        root=BatchFileResponse(
+            files=results
+        )
+    )
 
 if __name__ == "__main__":
     # Run the server

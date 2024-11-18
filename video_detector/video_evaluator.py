@@ -1,6 +1,7 @@
 import os
 import cv2
 import dlib
+import numpy as np
 import torch
 import torch.nn as nn
 from os.path import join
@@ -9,20 +10,21 @@ from tqdm import tqdm
 from network.models import model_selection, return_pytorch04_xception
 from dataset.transform import xception_default_data_transforms
 import pdb
+import json
 
 class VideoEvaluator:
-    def __init__(self, model_path=None, output_path='.', cuda=True):
+    def __init__(self, model_path=None, output_path='.', cuda=False):
         self.output_path = output_path
-        self.cuda = cuda
+        self.cuda = torch.cuda.is_available() if cuda else False
         self.face_detector = dlib.get_frontal_face_detector()
         
         # Load model
         self.model, *_ = model_selection(modelname='xception', num_out_classes=2)
-        if model_path:
-            self.model = return_pytorch04_xception()
-            print(f'Model found in {model_path}')
-        else:
-            print('No model found, initializing random model.')
+        # if model_path:
+        #     # self.model = return_pytorch04_xception()
+        #     print(f'Model found in {model_path}')
+        # else:
+        #     print('No model found, initializing random model.')
         if self.cuda:
             self.model = self.model.cuda()
 
@@ -55,14 +57,19 @@ class VideoEvaluator:
 
     # def evaluate_video(self, video_path, start_frame=0, end_frame=None):
     #     print(f'Starting: {video_path}')
-    #     # pdb.set_trace()
+        
+    #     # Setup for video input and output paths
     #     reader = cv2.VideoCapture(video_path)
-    #     video_fn = f"{os.path.splitext(os.path.basename(video_path))[0]}.avi"
-    #     # pdb.set_trace()
+    #     video_fn = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.avi"
+    #     processed_video_path = os.path.join(self.output_path, video_fn)
     #     os.makedirs(self.output_path, exist_ok=True)
         
-    #     fourcc, fps, num_frames = cv2.VideoWriter_fourcc(*'MJPG'), reader.get(cv2.CAP_PROP_FPS), int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
-    #     writer, frame_num = None, 0
+    #     # Video writer setup
+    #     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    #     fps = reader.get(cv2.CAP_PROP_FPS)
+    #     num_frames = int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
+    #     writer = None
+    #     frame_num = 0
 
     #     pbar = tqdm(total=(end_frame - start_frame) if end_frame else num_frames)
     #     while reader.isOpened():
@@ -75,7 +82,9 @@ class VideoEvaluator:
     #         pbar.update(1)
 
     #         if writer is None:
-    #             writer = cv2.VideoWriter(join(self.output_path, video_fn), fourcc, fps, (image.shape[1], image.shape[0]))
+    #             writer = cv2.VideoWriter(processed_video_path, fourcc, fps, (image.shape[1], image.shape[0]))
+            
+    #         # Detect and process faces in the frame
     #         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     #         faces = self.face_detector(gray, 1)
     #         if faces:
@@ -84,33 +93,75 @@ class VideoEvaluator:
     #             cropped_face = image[y:y+size, x:x+size]
     #             prediction, output = self.predict_with_model(cropped_face)
                 
+    #             # Annotate frame
     #             label = 'fake' if prediction == 1 else 'real'
     #             color = (0, 255, 0) if prediction == 0 else (0, 0, 255)
-    #             cv2.putText(image, f"{output.tolist()}=>{label}", (x, y + face.height() + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+    #             cv2.putText(image, f"{output.tolist()} => {label}", (x, y + face.height() + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
     #             cv2.rectangle(image, (x, y), (face.right(), face.bottom()), color, 2)
 
     #         writer.write(image)
     #     pbar.close()
-    #     writer.release()
-    #     print(f'Finished! Output saved under {self.output_path}')
-    #     return self.output_path
+    #     reader.release()
+    #     if writer is not None:
+    #         writer.release()
 
-    
-    def evaluate_video(self, video_path, start_frame=0, end_frame=None):
+    #     print(f'Finished! Output saved under {processed_video_path}')
+        
+    #     # Return the path to the processed video file
+    #     return processed_video_path
+
+
+    def evaluate_video(self, video_path, start_frame=0, end_frame=None, output_mode='video', verbose=False):
+        """
+        Evaluate a video for deepfake detection with multiple output modes.
+        
+        Args:
+            video_path (str): Path to input video
+            start_frame (int): Starting frame for processing
+            end_frame (int): Ending frame for processing
+            output_mode (str): Either 'video' for processed video output or 'json' for detection results
+            verbose (bool): If True, includes detailed frame-by-frame analysis in JSON output
+        
+        Returns:
+            Union[str, dict]: Either the path to processed video or path to JSON results
+        """
         print(f'Starting: {video_path}')
         
-        # Setup for video input and output paths
+        # Setup for video input
         reader = cv2.VideoCapture(video_path)
-        video_fn = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.avi"
-        processed_video_path = os.path.join(self.output_path, video_fn)
+        num_frames = int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = reader.get(cv2.CAP_PROP_FPS)
+        frame_num = 0
+        
+        # Initialize video writer if in video mode
+        writer = None
+        processed_video_path = None
+        json_output_path = None
+        
+        # Create output paths
+        base_filename = os.path.splitext(os.path.basename(video_path))[0]
         os.makedirs(self.output_path, exist_ok=True)
         
-        # Video writer setup
-        fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-        fps = reader.get(cv2.CAP_PROP_FPS)
-        num_frames = int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
-        writer = None
-        frame_num = 0
+        if output_mode == 'video':
+            processed_video_path = os.path.join(self.output_path, f"{base_filename}_processed.avi")
+            fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+        else:
+            json_output_path = os.path.join(self.output_path, f"{base_filename}_results.json")
+
+        # Initialize results tracking
+        total_predictions = 0
+        sum_predictions = 0
+        sum_confidence = np.array([0.0, 0.0])  # For averaging confidence scores
+        frames_with_faces = 0
+        
+        # Initialize results dictionary for JSON mode
+        json_results = {
+            'input_path': video_path,
+            'frames_analyzed': 0,
+            'frames_with_faces': 0,
+        }
+        if verbose:
+            json_results['frames'] = []
 
         pbar = tqdm(total=(end_frame - start_frame) if end_frame else num_frames)
         while reader.isOpened():
@@ -122,35 +173,105 @@ class VideoEvaluator:
                 continue
             pbar.update(1)
 
-            if writer is None:
-                writer = cv2.VideoWriter(processed_video_path, fourcc, fps, (image.shape[1], image.shape[0]))
+            if output_mode == 'video' and writer is None:
+                writer = cv2.VideoWriter(processed_video_path, fourcc, fps, 
+                                       (image.shape[1], image.shape[0]))
             
             # Detect and process faces in the frame
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
             faces = self.face_detector(gray, 1)
+            
+            if verbose:
+                frame_results = {
+                    'frame_number': frame_num,
+                    'faces': []
+                }
+            
             if faces:
+                frames_with_faces += 1
                 face = faces[0]
                 x, y, size = self.get_boundingbox(face, image.shape[1], image.shape[0])
                 cropped_face = image[y:y+size, x:x+size]
                 prediction, output = self.predict_with_model(cropped_face)
                 
-                # Annotate frame
-                label = 'fake' if prediction == 1 else 'real'
-                color = (0, 255, 0) if prediction == 0 else (0, 0, 255)
-                cv2.putText(image, f"{output.tolist()} => {label}", (x, y + face.height() + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-                cv2.rectangle(image, (x, y), (face.right(), face.bottom()), color, 2)
+                # Update running totals
+                total_predictions += 1
+                sum_predictions += prediction
+                output_np = output.detach().cpu().numpy()
+                sum_confidence += output_np[0]
+                
+                if verbose:
+                    # Store detailed face detection results
+                    face_result = {
+                        'bbox': {'x': x, 'y': y, 'width': face.width(), 'height': face.height()},
+                        'prediction': int(prediction),
+                        'confidence': output.tolist(),
+                        'label': 'fake' if prediction == 1 else 'real'
+                    }
+                    frame_results['faces'].append(face_result)
+                
+                if output_mode == 'video':
+                    # Annotate frame
+                    label = 'fake' if prediction == 1 else 'real'
+                    color = (0, 255, 0) if prediction == 0 else (0, 0, 255)
+                    cv2.putText(image, f"{output.tolist()} => {label}", 
+                              (x, y + face.height() + 30), 
+                              cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+                    cv2.rectangle(image, (x, y), (face.right(), face.bottom()), 
+                                color, 2)
 
-            writer.write(image)
+            if output_mode == 'video':
+                writer.write(image)
+            elif verbose:
+                json_results['frames'].append(frame_results)
+                
         pbar.close()
         reader.release()
         if writer is not None:
             writer.release()
 
-        print(f'Finished! Output saved under {processed_video_path}')
-        
-        # Return the path to the processed video file
-        return processed_video_path
+        if output_mode == 'video':
+            print(f'Finished! Output saved under {processed_video_path}')
+            return processed_video_path
+        else:
+            # Calculate final predictions and confidence
+            if total_predictions > 0:
+                avg_prediction = sum_predictions / total_predictions
+                avg_confidence = sum_confidence / total_predictions
+                
+                # Determine final label
+                final_label = 'fake' if avg_prediction >= 0.5 else 'real'
+                
+                # Update JSON results with summary
+                json_results.update({
+                    'frames_analyzed': frame_num - start_frame,
+                    'frames_with_faces': frames_with_faces,
+                    'final_label': final_label,
+                    'confidence_scores': {
+                        'real': float(avg_confidence[0]),
+                        'fake': float(avg_confidence[1])
+                    },
+                    'average_prediction': float(avg_prediction)
+                })
+            else:
+                json_results.update({
+                    'frames_analyzed': frame_num - start_frame,
+                    'frames_with_faces': 0,
+                    'final_label': 'no_faces_detected',
+                    'confidence_scores': {
+                        'real': 0.0,
+                        'fake': 0.0
+                    },
+                    'average_prediction': 0.0
+                })
 
+            # Write JSON results to file
+            # with open(json_output_path, 'w', encoding='utf-8') as f:
+            #     json.dump(json_results, f, indent=2)
+            # print(f'Finished! JSON results saved under {json_output_path}')
+            # return json_output_path
+            return json_results
+        
 
 if __name__ == '__main__':
     import argparse
