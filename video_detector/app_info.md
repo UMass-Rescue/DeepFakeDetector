@@ -39,7 +39,7 @@ video_detector/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-repo/video-deepfake-detector.git
+git clone [https://github.com/UMass-Rescue/DeepFakeDetector.git]
 cd video_detector
 ```
 
