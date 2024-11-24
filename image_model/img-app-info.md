@@ -47,7 +47,7 @@ binary_deepfake_detection\
 
 - Download the model backbone weights from [here](https://drive.google.com/file/d/1xyKnA6SsG4ZpguNQQrB6Yz-J5dzXYfKE/view), prefix the name with `middle_`, and move them to the `pretrained` folder. You should have `pretrained\middle_checkpoint.pth.tar`. Other backbone weights available [here](https://github.com/hpi-xnor/BNext/tree/main?tab=readme-ov-file).
 
-- Create a `weights\` folder in the main program folder. Download the model checkpoint from [here](https://drive.google.com/file/d/16c5xIDvwN3DUD6JbO_cl7aj_xrijezWs/view?usp=drive_link) and place the downloaded file into the weights folder. Other checkpoints (trained on other datasets/using different backbones) can be found [here](https://drive.google.com/drive/folders/1rYtfozcq5eXK1a8tP8ouXrBFZs1e72dV).
+- Create a `weights\` folder in the main program folder (`binary_deepfake_detection\`). Download the model checkpoint from [here](https://drive.google.com/file/d/16c5xIDvwN3DUD6JbO_cl7aj_xrijezWs/view?usp=drive_link) and place the downloaded file into the weights folder. Other checkpoints (trained on other datasets/using different backbones) can be found [here](https://drive.google.com/drive/folders/1rYtfozcq5eXK1a8tP8ouXrBFZs1e72dV).
 
 
 ### 3. Install Dependencies
