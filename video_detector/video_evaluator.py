@@ -41,6 +41,15 @@ class VideoEvaluator:
         return x1, y1, size_bb
 
     def preprocess_image(self, image):
+        """
+        Preprocess the input image for model prediction.
+        
+        Args:
+            image (numpy.ndarray): The input image in BGR format.
+        
+        Returns:
+            torch.Tensor: The preprocessed image tensor.
+        """
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         preprocess = xception_default_data_transforms['test']
         preprocessed_image = preprocess(pil_image.fromarray(image)).unsqueeze(0)
@@ -54,62 +63,6 @@ class VideoEvaluator:
         output = nn.Softmax(dim=1)(output)
         _, prediction = torch.max(output, 1)
         return int(prediction.cpu().numpy()), output
-
-    # def evaluate_video(self, video_path, start_frame=0, end_frame=None):
-    #     print(f'Starting: {video_path}')
-        
-    #     # Setup for video input and output paths
-    #     reader = cv2.VideoCapture(video_path)
-    #     video_fn = f"{os.path.splitext(os.path.basename(video_path))[0]}_processed.avi"
-    #     processed_video_path = os.path.join(self.output_path, video_fn)
-    #     os.makedirs(self.output_path, exist_ok=True)
-        
-    #     # Video writer setup
-    #     fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-    #     fps = reader.get(cv2.CAP_PROP_FPS)
-    #     num_frames = int(reader.get(cv2.CAP_PROP_FRAME_COUNT))
-    #     writer = None
-    #     frame_num = 0
-
-    #     pbar = tqdm(total=(end_frame - start_frame) if end_frame else num_frames)
-    #     while reader.isOpened():
-    #         ret, image = reader.read()
-    #         if not ret or (end_frame and frame_num >= end_frame):
-    #             break
-    #         frame_num += 1
-    #         if frame_num < start_frame:
-    #             continue
-    #         pbar.update(1)
-
-    #         if writer is None:
-    #             writer = cv2.VideoWriter(processed_video_path, fourcc, fps, (image.shape[1], image.shape[0]))
-            
-    #         # Detect and process faces in the frame
-    #         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    #         faces = self.face_detector(gray, 1)
-    #         if faces:
-    #             face = faces[0]
-    #             x, y, size = self.get_boundingbox(face, image.shape[1], image.shape[0])
-    #             cropped_face = image[y:y+size, x:x+size]
-    #             prediction, output = self.predict_with_model(cropped_face)
-                
-    #             # Annotate frame
-    #             label = 'fake' if prediction == 1 else 'real'
-    #             color = (0, 255, 0) if prediction == 0 else (0, 0, 255)
-    #             cv2.putText(image, f"{output.tolist()} => {label}", (x, y + face.height() + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
-    #             cv2.rectangle(image, (x, y), (face.right(), face.bottom()), color, 2)
-
-    #         writer.write(image)
-    #     pbar.close()
-    #     reader.release()
-    #     if writer is not None:
-    #         writer.release()
-
-    #     print(f'Finished! Output saved under {processed_video_path}')
-        
-    #     # Return the path to the processed video file
-    #     return processed_video_path
-
 
     def evaluate_video(self, video_path, start_frame=0, end_frame=None, output_mode='video', verbose=False):
         """

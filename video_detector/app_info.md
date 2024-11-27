@@ -39,7 +39,7 @@ video_detector/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/UMass-Rescue/DeepFakeDetector.git
+git clone https://github.com/aravadikesh/DeepFakeDetector.git
 cd video_detector
 ```
 
@@ -54,26 +54,27 @@ conda create -n deepfake-detector python=3.11
 conda activate deepfake-detector
 ```
 
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Install Additional System Dependencies
+### 3. Install Additional System Dependencies
 Some libraries like dlib require additional system packages:
 
 #### On Ubuntu/Debian
 ```bash
 sudo apt-get update
-sudo apt-get install -y python3-dev cmake
+sudo apt-get install cmake
 sudo apt-get install -y libopenblas-dev liblapack-dev
 sudo apt-get install -y libx11-dev libgtk-3-dev
+conda install -c conda-forge libstdcxx-ng
 ```
 
 #### On macOS (with Homebrew)
 ```bash
 brew install cmake
 brew install openblas
+```
+
+### 4. Install Dependencies
+```bash
+pip install -r requirements.txt
 ```
 
 #### On Windows
