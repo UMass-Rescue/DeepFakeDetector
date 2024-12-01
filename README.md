@@ -1,11 +1,17 @@
+Here's a formatted version of the README:
+
 # DeepFakeDetector
 
-Project currently in development. 
+## Project Status
+Currently in development
 
-README for Image Detection is at image_model/img-app-info.md
+## Image Detection
+- **README Location**: `image_model/img-app-info.md`
 
-Preferred Video Detection Model is EfficientNet
-README for the same is at efficientNet/app_info.md
+## Video Detection Models
 
-Alternative Video Detection Model is XceptionNet
-README for the same is at video_detector/app_info.md
+### Preferred Model: EfficientNet
+- **README Location**: `efficientNet/app_info.md`
+
+### Alternative Model: XceptionNet
+- **README Location**: `video_detector/app_info.md`
