@@ -1,5 +1,3 @@
-Here's a formatted version of the README:
-
 # DeepFakeDetector
 
 ## Project Status
