@@ -92,11 +92,12 @@ conda create -n deepfake-detector python=3.11
 conda activate deepfake-detector
 ```
 
-### 3. Install Additional System Dependencies
+### 3. Install Required System Dependencies
 
 ```bash
 pip install efficientnet-pytorch
 pip install -U git+https://github.com/albu/albumentations 
+pip install -r requirements.txt
 ```
 
 ## Usage Methods

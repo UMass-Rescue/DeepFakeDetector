@@ -55,7 +55,7 @@ def create_deepfake_detection_task_schema() -> TaskSchema:
                 EnumVal(key="EfficientNetAutoAttB4", label="EfficientNetAutoAttB4"),
                 EnumVal(key="EfficientNetAutoAttB4ST", label="EfficientNetAutoAttB4ST"),
                 ],
-                default="EfficientNetB4",
+                default="EfficientNetAutoAttB4ST",
             )
             ),
             ParameterSchema(
