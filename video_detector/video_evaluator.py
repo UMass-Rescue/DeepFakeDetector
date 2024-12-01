@@ -13,7 +13,7 @@ import pdb
 import json
 
 class VideoEvaluator:
-    def __init__(self, model_name=None, output_path='.', cuda=False, model_path=None):
+    def __init__(self, model_name=None, output_path='.', cuda=False, model_path='weights/xception-b5690688.pth'):
         self.output_path = output_path
         self.cuda = torch.cuda.is_available() if cuda else False
         self.face_detector = dlib.get_frontal_face_detector()
@@ -305,9 +305,6 @@ if __name__ == '__main__':
     #res = evaluator50.evaluate_video(args.video_path, args.start_frame, args.end_frame, output_mode='json')
     print(res)
 
-# python video_evaluator.py -i '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/DeepfakeTIMIT/higher_quality/fadg0/sa1-video-fram1.avi' 
-# -o '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/results' 
-# -m '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/weights/xception-b5690688.pth'
 
 
 
