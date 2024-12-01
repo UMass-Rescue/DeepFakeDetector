@@ -1,0 +1,186 @@
+# Video Deepfake Detection Application
+
+## Overview
+This application provides a robust solution for detecting deepfake videos using advanced machine learning techniques. By leveraging state-of-the-art neural network architectures, the tool can analyze video files and classify them as real, fake, or uncertain with high accuracy.
+
+## Key Features
+- Multi-model deepfake detection support
+- Batch video processing
+- Configurable detection thresholds
+- CSV output for easy result analysis
+- Supports multiple video file formats
+
+## Supported Models
+1. EfficientNetB4
+2. EfficientNetB4ST
+3. EfficientNetAutoAttB4
+4. EfficientNetAutoAttB4ST
+
+## System Requirements
+- Python 3.8+
+- CUDA-compatible GPU (recommended)
+- Sufficient storage for video processing
+
+## Project Structure
+```
+efficientNet/
+│
+├── server.py               # Main Flask server implementation
+├── detect_deepfakes.py      # Core video processing and deepfake detection logic
+├── evalpipeline.py          # Command-line video processing script for evluation of models
+├── requirements.txt        # Python package dependencies
+├── architectures/               # Neural network model definitions        
+├── isplutils/                # Data transformation utils
+├── blazeface/             # Face detection model
+└── app_info.md             # Application documentation
+```
+
+## Key Components
+1. **Deepfake Detector (`detect_deepfakes.py`)**: 
+   - Implements a sophisticated neural network-based deepfake detection mechanism
+   - Utilizes advanced machine learning architectures like EfficientNet for video analysis
+   - Performs face extraction and probabilistic prediction using the following core functionalities:
+     - Face detection with BlazeFace model
+     - Frame-level feature extraction
+     - Probability computation using sigmoid activation
+     - Classification of videos as REAL, FAKE, or UNCERTAIN based on configurable probability thresholds
+   - Supports multiple pre-trained model variants for flexible detection
+   - Processes videos by analyzing individual frames and aggregating predictions
+   - Provides robust error handling and device-agnostic computation (CPU/GPU)
+
+2. **Evaluation Pipeline (`evalpipeline.py`)**: 
+   - Serves as a comprehensive command-line interface for large-scale video analysis
+   - Automates the process of discovering and processing video files across entire directory structures
+   - Provides key features including:
+     - Recursive video file discovery with support for multiple file extensions
+     - Batch processing of videos using different machine learning models
+     - Automatic result aggregation and statistical summarization
+   - Enables systematic evaluation by:
+     - Scanning specified directories for video content
+     - Applying multiple deepfake detection models
+     - Generating detailed CSV reports for each model
+     - Producing summary statistics of detection results
+   - Offers flexible configuration through interactive input
+   - Supports comprehensive model comparison by processing the same dataset across different neural network architectures
+
+3. **MLServer (`server.py`)**: 
+   - Creates a Flask-based server for processing video files
+   - Provides a flexible API for deepfake detection
+   - Supports batch processing of multiple videos
+   - Offers comprehensive configuration options including:
+     - Model selection
+     - Real and fake probability thresholds
+     - Output directory specification
+   - Generates standardized CSV output for easy result interpretation
+
+## Environment Setup
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/aravadikesh/DeepFakeDetector.git
+cd efficientNet
+```
+
+### 2. Create Virtual Environment
+```bash
+# Using venv
+python3 -m venv venv
+source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+
+# OR using conda
+conda create -n deepfake-detector python=3.11
+conda activate deepfake-detector
+```
+
+### 3. Install Additional System Dependencies
+
+```bash
+pip install efficientnet-pytorch
+pip install -U git+https://github.com/albu/albumentations 
+```
+
+## Usage Methods
+
+### Command-Line Processing
+Run `python evalpipeline.py` and:
+- Enter the directory path containing videos
+- The script will automatically:
+  - Detect video files
+  - Process each video through multiple models
+  - Generate CSV result files
+
+### Web Server Mode
+Run `python server.py` to start a Flask-based web interface for:
+- Batch video processing
+- Interactive threshold configuration
+- Graphical result export
+
+## Detection Workflow
+1. Face extraction from video frames
+2. Neural network probability prediction
+3. Classification based on configurable thresholds:
+   - ≤ 0.2: Classified as REAL
+   - 0.2 - 0.75: Classified as UNCERTAIN
+   - ≥ 0.75: Classified as FAKE
+
+## Output
+Generates a CSV file with the following columns:
+- `video_path`: Source video filename
+- `deepfake_probability`: Confidence score
+- `prediction`: REAL/FAKE/UNCERTAIN status
+
+## Customization
+Modify detection thresholds in configuration:
+- `real_threshold`: Default 0.2
+- `fake_threshold`: Default 0.8
+
+## Limitations
+- Accuracy depends on training data
+- Performance varies with video quality
+- Requires clear face detection in frames
+
+# Deepfake Detection Results
+
+## Experimental Setup
+- **Dataset**: Deepfake TIMIT
+- **Classification Thresholds**:
+  - Real: ≤ 0.2
+  - Uncertain: 0.2 - 0.8
+  - Fake: ≥ 0.8
+
+## Model Performance Comparison
+
+| Model | FAKE | UNCERTAIN | REAL | Total | Accuracy (%) |
+|-------|------|-----------|------|-------|--------------|
+| **EfficientNetAutoAttB4** | 520 | 98 | 22 | 640 | 81.25 |
+| **EfficientNetAutoAttB4ST** | 589 | 49 | 2 | 640 | 92.03 |
+| **EfficientNetB4** | 545 | 87 | 8 | 640 | 85.16 |
+| **EfficientNetB4ST** | 560 | 73 | 7 | 640 | 87.50 |
+
+## Detailed Analysis
+
+### Best Performing Model
+**EfficientNetAutoAttB4ST** emerged as the top-performing model with:
+- Highest accuracy: 92.03%
+- Lowest uncertainty rate
+- Most confident fake video detection
+
+## Experimental Setup
+- **Dataset**: SDFVD
+- **Classification Thresholds**:
+  - Real: ≤ 0.2
+  - Uncertain: 0.2 - 0.8
+  - Fake: ≥ 0.8
+
+| Video Type | FAKE | UNCERTAIN | REAL | Total | Accuracy (%) |
+|------------|------|-----------|------|-------|--------------|
+| **Fake Videos** | 4 | 21 | 28 | 53 | 7.55 |
+| **Real Videos** | 1 | 24 | 28 | 53 | 52.83 |
+
+## Key Observations
+1. The self-attention variants (ST models) consistently outperformed their base counterparts
+2. Significant variation in detection accuracy between fake and real video classifications
+3. High uncertainty rates, particularly for fake video detection
+
+## Recommended Model
+**EfficientNetAutoAttB4ST** is recommended for future deepfake detection tasks due to its superior performance and low uncertainty rate.

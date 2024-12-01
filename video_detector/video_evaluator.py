@@ -13,18 +13,21 @@ import pdb
 import json
 
 class VideoEvaluator:
-    def __init__(self, model_path=None, output_path='.', cuda=False):
+    def __init__(self, model_name=None, output_path='.', cuda=False, model_path=None):
         self.output_path = output_path
         self.cuda = torch.cuda.is_available() if cuda else False
         self.face_detector = dlib.get_frontal_face_detector()
         
         # Load model
-        self.model, *_ = model_selection(modelname='xception', num_out_classes=2)
-        # if model_path:
-        #     # self.model = return_pytorch04_xception()
-        #     print(f'Model found in {model_path}')
-        # else:
-        #     print('No model found, initializing random model.')
+        if model_name is None:
+            self.model, *_ = model_selection(modelname='xception', num_out_classes=2, model_path=model_path)
+        elif model_name == 'xception':
+            self.model, *_ = model_selection(modelname='xception', num_out_classes=2, model_path=model_path)
+        elif model_name == 'resnet18':
+            self.model, *_ = model_selection(modelname='resnet18', num_out_classes=2)
+        elif model_name == 'resnet50':
+            self.model, *_ = model_selection(modelname='resnet50', num_out_classes=2)
+
         if self.cuda:
             self.model = self.model.cuda()
 
@@ -218,7 +221,7 @@ class VideoEvaluator:
                     'average_prediction': 0.0
                 })
 
-            # Write JSON results to file
+            # # Write JSON results to file
             # with open(json_output_path, 'w', encoding='utf-8') as f:
             #     json.dump(json_results, f, indent=2)
             # print(f'Finished! JSON results saved under {json_output_path}')
@@ -235,11 +238,76 @@ if __name__ == '__main__':
     parser.add_argument('--start_frame', type=int, default=0)
     parser.add_argument('--end_frame', type=int, default=None)
     parser.add_argument('--cuda', action='store_true')
+    parser.add_argument('--model', '-M', type=str, default='xception')
     args = parser.parse_args()
     
-    evaluator = VideoEvaluator(args.model_path, args.output_path, args.cuda)
-    if os.path.isdir(args.video_path):
-        for video in os.listdir(args.video_path):
-            evaluator.evaluate_video(join(args.video_path, video), args.start_frame, args.end_frame)
-    else:
-        evaluator.evaluate_video(args.video_path, args.start_frame, args.end_frame)
+    evaluatorX = VideoEvaluator(model_name='xception', model_path=args.model_path, output_path=args.output_path, cuda=args.cuda)
+    evaluator18 = VideoEvaluator(model_name='resnet18', model_path=None, output_path=args.output_path, cuda=args.cuda)
+    evaluator50 = VideoEvaluator(model_name='resnet50', model_path=None, output_path=args.output_path, cuda=args.cuda)
+
+    dirs = ['/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/SDFVD/videos_fake', '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/SDFVD/videos_real']
+
+    # for dir in dirs:
+    #     if os.path.isdir(dir):
+    #         dirName = os.path.basename(dir)
+    #         X_results = []
+    #         res18_results = []
+    #         res50_results = []
+            
+    #         for video in os.listdir(args.video_path):
+    #             video_path = join(args.video_path, video)
+    #             print(f'Processing video: {video_path}')
+    #             resultX = evaluatorX.evaluate_video(video_path, args.start_frame, args.end_frame, output_mode='video')
+    #             # result18 = evaluator18.evaluate_video(video_path, args.start_frame, args.end_frame, output_mode='json')
+    #             # result50 = evaluator50.evaluate_video(video_path, args.start_frame, args.end_frame, output_mode='json')
+
+    #             X_results.append(resultX)
+    #             # res18_results.append(result18)
+    #             # res50_results.append(result50)
+            
+    #         # Save all results to a single JSON file
+    #         # output_file = os.path.join(args.output_path, dirName + 'X_results.json')
+    #         # with open(output_file, 'w', encoding='utf-8') as f:
+    #         #     json.dump(X_results, f, indent=2)
+
+    #         # output_file = os.path.join(args.output_path, dirName + '18_results.json')
+    #         # with open(output_file, 'w', encoding='utf-8') as f:
+    #         #     json.dump(res18_results, f, indent=2)
+
+    #         # output_file = os.path.join(args.output_path, dirName + 'res50_results.json')
+    #         # with open(output_file, 'w', encoding='utf-8') as f:
+    #         #     json.dump(res50_results, f, indent=2)
+
+    #         # print(f'All results saved under {output_file}')
+    #         print(X_results)
+    # # else:
+    # Average results over 5 runs
+    results = []
+    for _ in range(5):
+        res = evaluatorX.evaluate_video(args.video_path, args.start_frame, args.end_frame, output_mode='json')
+        results.append(res)
+
+    # Calculate average results
+    avg_results = {
+        'frames_analyzed': np.mean([r['frames_analyzed'] for r in results]),
+        'frames_with_faces': np.mean([r['frames_with_faces'] for r in results]),
+        'confidence_scores': {
+            'real': np.mean([r['confidence_scores']['real'] for r in results]),
+            'fake': np.mean([r['confidence_scores']['fake'] for r in results])
+        },
+        'average_prediction': np.mean([r['average_prediction'] for r in results]),
+        'final_label': 'fake' if np.mean([r['average_prediction'] for r in results]) >= 0.5 else 'real'
+    }
+
+    print(avg_results)
+    # res = evaluatorX.evaluate_video(args.video_path, args.start_frame, args.end_frame, output_mode='json')
+    # evaluator18.evaluate_video(args.video_path, args.start_frame, args.end_frame, output_mode='video')
+    #res = evaluator50.evaluate_video(args.video_path, args.start_frame, args.end_frame, output_mode='json')
+    print(res)
+
+# python video_evaluator.py -i '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/DeepfakeTIMIT/higher_quality/fadg0/sa1-video-fram1.avi' 
+# -o '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/results' 
+# -m '/Users/aravadikesh/Documents/GitHub/DeepFakeDetector/video_detector/weights/xception-b5690688.pth'
+
+
+
