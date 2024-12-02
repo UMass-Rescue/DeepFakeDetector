@@ -185,3 +185,54 @@ Modify detection thresholds in configuration:
 
 ## Recommended Model
 **EfficientNetAutoAttB4ST** is recommended for future deepfake detection tasks due to its superior performance and low uncertainty rate.
+
+# Instructions to Generate Metrics
+
+1. **Dataset**: You need one of the following datasets:
+   - **DeepFakeTIMIT** (Lower Quality and Higher Quality)
+   - **SDFVD** (videos_fake and videos_real)
+
+   Download the dataset from the appropriate source and extract it to a local directory.
+
+## Instructions
+
+### 1. Setup for DeepFakeTIMIT Dataset
+   - Place the **Lower Quality** videos in one directory and the **Higher Quality** videos in another.
+   - Run the script separately for each quality level and collate the results afterward.
+
+### 2. Running the Script
+   - Run the script using:
+     ```bash
+     python evalpipeline.py
+     ```
+   - When prompted, enter the path to the directory containing the video files for the dataset (either Lower Quality or Higher Quality for DeepFakeTIMIT, or videos_fake and videos_real for SDFVD).
+
+### 3. Script Behavior
+   - The script will:
+     1. Search for video files in the specified directory (including subdirectories).
+     2. Process each video using the detection models: `EfficientNetB4`, `EfficientNetB4ST`, `EfficientNetAutoAttB4`, and `EfficientNetAutoAttB4ST`.
+     3. Generate a results CSV file for each model, saved in the same directory as the script (e.g., `deepfake_results_EfficientNetB4.csv`).
+
+### 4. Collating Results for DeepFakeTIMIT
+   - After processing both the **Lower Quality** and **Higher Quality** datasets:
+     - Combine the respective CSV files using a tool like pandas:
+       ```python
+       import pandas as pd
+
+       low_quality_results = pd.read_csv('deepfake_results_EfficientNetB4.csv')  # Update file name as necessary
+       high_quality_results = pd.read_csv('deepfake_results_EfficientNetB4_HQ.csv')
+
+       combined_results = pd.concat([low_quality_results, high_quality_results])
+       combined_results.to_csv('deepfake_combined_results.csv', index=False)
+       ```
+     - Review the combined results.
+
+### 5. Output
+   - For each model, the script will print the number of predictions in the following categories:
+     - Real
+     - Fake
+     - Uncertain
+
+### Notes
+   - Adjust the `real_threshold` and `fake_threshold` parameters in the `run_detection` call if needed.
+   - Ensure the `detect_deepfakes` module and its dependencies are correctly configured. Refer to its documentation for details.
