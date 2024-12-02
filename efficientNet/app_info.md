@@ -180,8 +180,8 @@ Modify detection thresholds in configuration:
 
 ## Key Observations
 1. The self-attention variants (ST models) consistently outperformed their base counterparts
-2. Significant variation in detection accuracy between fake and real video classifications
-3. High uncertainty rates, particularly for fake video detection
+2. High uncertainty rates
+3. Uncertainty boundaries could be modified to improve results. Dependant on user requirements.
 
 ## Recommended Model
 **EfficientNetAutoAttB4ST** is recommended for future deepfake detection tasks due to its superior performance and low uncertainty rate.
