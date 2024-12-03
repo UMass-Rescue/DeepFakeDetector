@@ -1,3 +1,15 @@
 # DeepFakeDetector
 
-Project currently in development. ImageModel used python 3.10 and is located here - https://github.com/fedeloper/binary_deepfake_detection.
+## Project Status
+Currently in development
+
+## Image Detection
+- **README Location**: `image_model/img-app-info.md`
+
+## Video Detection Models
+
+### Preferred Model: EfficientNet
+- **README Location**: `efficientNet/app_info.md`
+
+### Alternative Model: XceptionNet
+- **README Location**: `video_detector/app_info.md`

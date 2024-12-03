@@ -78,7 +78,6 @@ def predict(net, sample, device, dataset, disable_facecrop=False):
         output = net(image)
         logit = output["logits"][0][0]
         temp = torch.sigmoid(logit)
-        print(temp)
         pred = 1 if temp > 0.9 else 0
         return pred
 

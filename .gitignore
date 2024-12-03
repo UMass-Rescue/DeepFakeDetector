@@ -166,6 +166,8 @@ binary_deepfake_detection/
 datasets/
 
 video_detector/results
-video_detector/weights
 video_detector/SDFVD
 video_detector/DeepfakeTIMIT
+video_detector/test.py
+*.csv
+*.DS_Store
