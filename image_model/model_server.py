@@ -85,7 +85,7 @@ def predict(net, sample, device, dataset, disable_facecrop=False):
 def give_prediction(inputs:Inputs, parameters:Parameters) -> ResponseBody:
     cfg["dataset_path"] = inputs["input_dataset"].path
     out = inputs["output_file"].path
-    out = f"{out}\\predictions" + str(int(torch.rand(1) * 1000)) + ".csv"
+    out = f"{out}\\predictions_" + str(int(torch.rand(1) * 1000)) + ".csv"
     data = defaultDataset(
         dataset_path=cfg["dataset_path"],
         resolution=cfg["resolution"]
@@ -95,9 +95,13 @@ def give_prediction(inputs:Inputs, parameters:Parameters) -> ResponseBody:
     net = model.BNext4DFR.load_from_checkpoint(cfg["ckpt"])
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     net = net.to(device)
+    net.eval()
     res_list = []
     for i in range(len(data)):
         sample = data[i]
+        if sample is None:
+            res_list.append({"image_path": sample["image_path"][:-1], "prediction": "error"})
+            continue
         pred = predict(net, sample, device, data, disable_facecrop)
         res_list.append({"image_path": sample["image_path"][:-1], "prediction": "real" if pred == 1 else "fake"})
     
