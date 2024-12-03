@@ -1,19 +1,20 @@
 import argparse
 
-from torchmetrics.functional.classification import accuracy
+from torchmetrics.functional.classification import accuracy, f1_score, confusion_matrix
 import torch
 from retinaface import RetinaFace
 from sim_data import defaultDataset
 # from BNN github
 import model as model
 import matplotlib.pyplot as plt
+import tqdm
 
 def args_func():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--dataset_path",
         type=str,
-        default="datasets/demo",
+        default="datasets/test",
         help="Path to the dataset folder.",
     )
     parser.add_argument(
@@ -34,11 +35,13 @@ def get_area_ratio(img1, img2):
 
 if __name__ == "__main__":
     
+    # print(torch.cuda.is_available())
+    # exit()
     cfg = {
-        "dataset_path": "datasets/demo",
+        "dataset_path": "datasets/test",
         "resolution": 224,
         "ckpt": "weights/dffd_M_unfrozen.ckpt",
-        "enable_facecrop": True,
+        "enable_facecrop": False, 
         }
 
     args = args_func()
@@ -55,15 +58,20 @@ if __name__ == "__main__":
     net = model.BNext4DFR.load_from_checkpoint(model_ckpt)
     print(f"Model loaded from {model_ckpt}")  
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Device: {device}")
     net = net.to(device)
 
-
-    # run_label = args.cfg.split("/")[-1].split(".")[0]
+    net.eval()
     label = []
     logits = []
+    tp = tn = fp = fn = 0
+    err_imgs = 0
 
-    for i in range(len(test_dataset))[:10000]:
+    for i in tqdm.tqdm(range(len(test_dataset))):
         sample = test_dataset[i]
+        if sample is None:
+            err_imgs += 1
+            continue
         image = None
         if cfg["enable_facecrop"]:
                 faces = RetinaFace.extract_faces(sample["image_path"][:-1], expand_face_area=35)       
@@ -79,12 +87,15 @@ if __name__ == "__main__":
             output = net(image)
             logit = output["logits"][0][0]
             temp = torch.sigmoid(logit)
-            pred = 1 if temp > 0.9 else 0
-            print(f"Image: {sample['image_path']}")
-            print(temp)
-            print(f"Predicted: {pred}, Real: {is_real[0]}")
+            pred = 1 if temp > 0.5 else 0
             logits.append(logit)
             label.append(is_real[0])
         
-    acc = accuracy(preds=torch.stack(logits), target=torch.stack(label), task="binary", average="micro", threshold=0.9)
+    preds = torch.stack(logits)
+    target = torch.stack(label)
+    acc = accuracy(preds, target, task="binary", average="micro", threshold=0.5)
+    f1 = f1_score(preds, target, task="binary", threshold=0.5, average="micro")
+    cm = confusion_matrix(preds, target, task="binary", threshold=0.5)
+    print(f"F1: {f1}")
     print(f"Accuracy: {acc}")
+    print(cm)

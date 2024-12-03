@@ -28,6 +28,7 @@ class defaultDataset(Dataset):
             T.ToTensor(),
         ])(image)
         return image, original_res
+     
 
     def apply_transforms(self, image):
         image = Image.fromarray(image)
@@ -38,7 +39,11 @@ class defaultDataset(Dataset):
         ])(image)
     
     def __getitem__(self, i):
-        image, res = self.read_image(self.images[i][:-1])
+        try:
+            image, res = self.read_image(self.images[i][:-1])
+        except:
+            print(f"Error reading image {self.images[i]}")
+            return None
         sample = {
             "image_path": self.images[i],
             "image": image,
