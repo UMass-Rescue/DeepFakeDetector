@@ -90,7 +90,7 @@ The following options are available on the GUI -
 
 - **Path to model ckpt**: If you want to use another model checkpoint (link in setup) you may download the relevant checkpoint and backbone weights (similarly to the checkpoint we used) and give the path to the new checkpoints. 
 
-The output will be a csv file where each row is an image, its corresponding prediction and confidence level. The prediction may be `uncertain` if the model can't conclude anything or `error` if opening the image led to an error. `real` and `fake` prediction are predictions by a ML model and may be incorrect.
+The output will be a csv file where each row is an image, its corresponding prediction and confidence level. The prediction may be `uncertain` if the model can't conclude anything or `error` if opening the image led to an error. `real` and `fake` prediction are predictions by a ML model and may be incorrect. The max confidence level is 1. 
 
 ## Evaluation 
 

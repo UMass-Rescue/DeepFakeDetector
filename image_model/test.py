@@ -3,10 +3,10 @@ import argparse
 import matplotlib.pyplot as plt
 # from BNN github
 import model as model
+import numpy as np
 import torch
 import tqdm
 from retinaface import RetinaFace
-import numpy as np
 from torchmetrics.functional.classification import (accuracy, confusion_matrix,
                                                     f1_score)
 
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     tp = tn = fp = fn = 0
     err_imgs = 0
     uncertain_imgs = 0
-    # ret_model = 
+    # ret_model =
     for i in tqdm.tqdm(range(len(test_dataset))):
         sample = test_dataset[i]
         if sample is None:
@@ -79,8 +79,10 @@ if __name__ == "__main__":
             continue
         image = sample["image"]
         if cfg["enable_facecrop"]:
-            faces = RetinaFace.extract_faces(sample["image_path"][:-1], expand_face_area=100, align=False)
-            if len(faces) > 0:         
+            faces = RetinaFace.extract_faces(
+                sample["image_path"][:-1], expand_face_area=100, align=False
+            )
+            if len(faces) > 0:
                 image = test_dataset.apply_transforms(faces[0])
             else:
                 image = sample["image"]
