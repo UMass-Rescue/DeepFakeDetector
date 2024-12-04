@@ -1,6 +1,6 @@
+import argparse
 import csv
 import warnings
-import argparse
 from typing import TypedDict
 
 from flask_ml.flask_ml_server import MLServer, load_file_as_string
@@ -81,7 +81,9 @@ server.add_app_metadata(
 def predict(net, sample, device, dataset, disable_facecrop=False):
     image = None
     if not disable_facecrop:
-        faces = RetinaFace.extract_faces(sample["image_path"][:-1], expand_face_area=100)
+        faces = RetinaFace.extract_faces(
+            sample["image_path"][:-1], expand_face_area=100
+        )
         if len(faces) > 0:
             image = dataset.apply_transforms(faces[0])
         else:
@@ -121,17 +123,23 @@ def give_prediction(inputs: Inputs, parameters: Parameters) -> ResponseBody:
             )
             continue
         pred, conf = predict(net, sample, device, data, disable_facecrop)
-        pred = "real" if pred == 1 and conf > 0.8 else "fake" if conf > 0.8 else "uncertain"
+        pred = (
+            "real"
+            if pred == 1 and conf > 0.8
+            else "fake" if conf > 0.8 else "uncertain"
+        )
         res_list.append(
             {
                 "image_path": sample["image_path"][:-1],
                 "prediction": pred,
-                "confidence": conf.item()
+                "confidence": conf.item(),
             }
         )
 
     with open(out, mode="w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=["image_path", "prediction", "confidence"])
+        writer = csv.DictWriter(
+            file, fieldnames=["image_path", "prediction", "confidence"]
+        )
         writer.writeheader()  # Write header row
         writer.writerows(res_list)  # Write data rows
 
@@ -140,8 +148,11 @@ def give_prediction(inputs: Inputs, parameters: Parameters) -> ResponseBody:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a server.")
-    parser.add_argument("--port", type=int, help="Port number to run the server", default=5000)
+    parser.add_argument(
+        "--port", type=int, help="Port number to run the server", default=5000
+    )
     args = parser.parse_args()
-    print("CUDA is available." if torch.cuda.is_available() else "CUDA is not available.")
+    print(
+        "CUDA is available." if torch.cuda.is_available() else "CUDA is not available."
+    )
     server.run(port=args.port)
-    
