@@ -151,12 +151,22 @@ Modify detection thresholds in configuration:
 
 ## Model Performance Comparison
 
-| Model | FAKE | UNCERTAIN | REAL | Total | Accuracy (%) |
-|-------|------|-----------|------|-------|--------------|
-| **EfficientNetAutoAttB4** | 520 | 98 | 22 | 640 | 81.25 |
-| **EfficientNetAutoAttB4ST** | 589 | 49 | 2 | 640 | 92.03 |
-| **EfficientNetB4** | 545 | 87 | 8 | 640 | 85.16 |
-| **EfficientNetB4ST** | 560 | 73 | 7 | 640 | 87.50 |
+| Model | FAKE | UNCERTAIN | REAL | Total | Accuracy (%) | Precision | Recall | TP | FP | FN |
+|-------|------|-----------|------|-------|--------------|-----------|--------|----|----|-----|
+| **EfficientNetAutoAttB4** | 520 | 98 | 22 | 640 | 81.25 | 0.81 | 0.81 | 520 | 120 | 120 |
+| **EfficientNetAutoAttB4ST** | 589 | 49 | 2 | 640 | 92.03 | 0.92 | 0.92 | 589 | 51 | 51 |
+| **EfficientNetB4** | 545 | 87 | 8 | 640 | 85.16 | 0.87 | 0.85 | 545 | 95 | 95 |
+| **EfficientNetB4ST** | 560 | 73 | 7 | 640 | 87.50 | 0.88 | 0.88 | 560 | 80 | 80 |
+
+Calculation notes:
+- Since the true label is FAKE, all samples NOT classified as FAKE are considered false positives (FP) and false negatives (FN)
+- TP (True Positives) = Number of correctly classified FAKE samples
+- FP = Number of samples incorrectly classified as UNCERTAIN or REAL
+- FN = Number of samples incorrectly classified as UNCERTAIN or REAL
+- Precision = TP / (TP + FP)
+- Recall = TP / Total number of samples
+
+The EfficientNetAutoAttB4ST model shows the best performance with the highest precision and recall of 0.92.
 
 ## Detailed Analysis
 
