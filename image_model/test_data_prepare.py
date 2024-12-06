@@ -50,7 +50,7 @@ def copy_images(source_dirs, dest_dir, max_images=10000):
 
 
 source_directories = ["datasets/dffd/pggan_v2/test", "datasets/dffd/img_align_celeba"]
-destination_directory = "datasets/test_s"
+destination_directory = "datasets/test"
 max_images = 10000
 
 copy_images(source_directories, destination_directory, max_images)

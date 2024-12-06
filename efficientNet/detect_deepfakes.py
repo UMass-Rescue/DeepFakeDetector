@@ -9,6 +9,7 @@ from scipy.special import expit
 from blazeface import FaceExtractor, BlazeFace, VideoReader
 from architectures import fornet, weights
 from isplutils import utils
+from tqdm import tqdm
 
 class DeepfakeDetector:
     def __init__(self, net_model: str = 'EfficientNetAutoAttB4ST', train_db: str = 'DFDC', real_threshold: float = 0.2, fake_threshold: float = 0.75):
@@ -53,5 +54,7 @@ class DeepfakeDetector:
 
 def run_detection(video_paths: List[str], model: str, real_threshold: float, fake_threshold: float) -> pd.DataFrame:
     detector = DeepfakeDetector(net_model=model, real_threshold=real_threshold, fake_threshold=fake_threshold)
-    results = [detector.process_video(video) for video in video_paths]
+    results = []
+    for video in tqdm(video_paths):
+        results.append(detector.process_video(video))
     return pd.DataFrame(results)
