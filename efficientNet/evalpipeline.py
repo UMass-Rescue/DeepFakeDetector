@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from typing import List, Optional
 from detect_deepfakes import run_detection
+from tqdm import tqdm
 
 def find_video_files(search_path: str, extensions: Optional[List[str]] = None) -> List[str]:
     """Recursively search for video files in the given directory."""
@@ -37,7 +38,7 @@ def main():
     search_directory = input("Enter the path to the video directory: ").strip()
     models = ['EfficientNetB4', 'EfficientNetB4ST', 'EfficientNetAutoAttB4', 'EfficientNetAutoAttB4ST']
 
-    for model in models:
+    for model in tqdm(models):
         output_csv = f'deepfake_results_{model}.csv'
         results_df = process_video_directory(search_directory, model=model, output_csv=output_csv)
         prediction_counts = count_predictions(results_df)
