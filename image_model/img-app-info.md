@@ -63,15 +63,19 @@ pip install -r requirements.txt
 
 ### (Optional but recommended) Check and make sure GPU is enabled 
 
-The retinaface model used doesn't support GPU on macOS as of now and I would recommend not using the model on macOS if you plan on using face cropping through retinaface.
+GPU usage is not supported on macOS as of now and I would recommend not using the model on macOS.
 
-If you want to use the GPU, please run the check_cuda.py to make sure CUDA is enabled. If you see CUDA is not available, you may need to reinstall the correct torch. Once you know which CUDA ver is needed for your GPU, you can find the system specific command [here](https://pytorch.org/get-started/locally/) once you select the appropriate options. 
+If you want to use the GPU (on windows/linux), please run the check_cuda.py to make sure CUDA is enabled. If you see CUDA is not available, you may need to reinstall the correct torch. If you see TensorFlow is not built with cuda, you may need to reinstall tensorflow. These issues are more likely with windows.
 
-Then run `pip uninstall torch` to uninstall the existing torch and then use the command you copied, which should look something like - `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/<your_cuda_ver>`
+**Installing correct Pytorch**
 
-Now rerun the check_cuda file to check cuda is ready. 
+Once you know which CUDA ver is needed for your GPU (run `nvidia-smi` for Nvidia GPUs), you can find the system specific command [here](https://pytorch.org/get-started/locally/). Just select the appropriate options (according to your system) and copy the command given.
 
-You can try running the model now, it should process about 10 imgs per second. If it is still slow, the retinaface model may not be running on GPU (especially on windows) and the fix can be found here - https://www.tensorflow.org/install/pip#linux. Run `pip uninstall tensorflow` and follow the steps (for appropriate) system on the website.
+Then run `pip uninstall torch` to uninstall the existing torch and then use the command you copied, which should look something like - `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/<your_cuda_ver>` or `pip install torch torchvision torchaudio`. Note, it may be `pip` or `pip3` depending on the python installation you have.
+
+**Installing correct tensorflow**
+
+You can try running the model now, it should process about 10 imgs per second. If it is still slow or you get the "TensorFlow is not built with cuda" upon running `check_cuda.py`, the retinaface model may not be running on GPU (especially on windows) and the fix can be found here - https://www.tensorflow.org/install/pip#linux. Run `pip uninstall tensorflow` and follow the steps (for appropriate) system on the website.
 
 
 
@@ -90,9 +94,9 @@ The following options are available on the GUI -
 
 - **Path to model ckpt**: If you want to use another model checkpoint (link in setup) you may download the relevant checkpoint and backbone weights (similarly to the checkpoint we used) and give the path to the new checkpoints. 
 
-The output will be a csv file where each row is an image, its corresponding prediction and confidence level. The prediction may be `uncertain` if the model can't conclude anything or `error` if opening the image led to an error. `real` and `fake` prediction are predictions by a ML model and may be incorrect. The max confidence level is 1. 
+The output will be a csv file where each row is an image, its corresponding prediction and confidence level. The prediction may be `uncertain` if the model can't conclude anything or `error` if opening the image led to an error. `likely real` and `likely fake` prediction are predictions by a ML model and may be incorrect. The max confidence level is 1. 
 
-## Evaluation 
+## Evaluation s
 
 I tested the model on 10k test images from the celeba dataset and ~9k fake imgs from the pggan_v2 dataset. Both of these are part of the DFFD dataset. I did the testing using a RTX 4090 GPU (on windows) and it took ~10 mins to classify all the images with face cropping disabled and ~23 mins with face cropping enabled.
 

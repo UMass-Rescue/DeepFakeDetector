@@ -124,9 +124,9 @@ def give_prediction(inputs: Inputs, parameters: Parameters) -> ResponseBody:
             continue
         pred, conf = predict(net, sample, device, data, disable_facecrop)
         pred = (
-            "real"
+            "likely real"
             if pred == 1 and conf > 0.8
-            else "fake" if conf > 0.8 else "uncertain"
+            else "likely fake" if conf > 0.8 else "uncertain"
         )
         res_list.append(
             {
