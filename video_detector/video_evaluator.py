@@ -15,7 +15,7 @@ import json
 class VideoEvaluator:
     def __init__(self, model_name=None, output_path='.', cuda=False, model_path='weights/xception-b5690688.pth'):
         self.output_path = output_path
-        self.cuda = torch.cuda.is_available() if cuda else False
+        self.cuda = torch.cuda.is_available() 
         self.face_detector = dlib.get_frontal_face_detector()
         
         # Load model
