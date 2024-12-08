@@ -151,7 +151,7 @@ Modify detection thresholds in configuration:
 
 ## Model Performance Comparison
 
-| Model | FAKE | UNCERTAIN | REAL | Total | Accuracy (%) | Precision | Recall | TP | FP | FN |
+| Model | PROBABLY FAKE | UNCERTAIN | PROBABLY REAL | Total | Accuracy (%) | Precision | Recall | TP | FP | FN |
 |-------|------|-----------|------|-------|--------------|-----------|--------|----|----|-----|
 | **EfficientNetAutoAttB4** | 520 | 98 | 22 | 640 | 81.25 | 0.81 | 0.81 | 520 | 120 | 120 |
 | **EfficientNetAutoAttB4ST** | 589 | 49 | 2 | 640 | 92.03 | 0.92 | 0.92 | 589 | 51 | 51 |
@@ -161,8 +161,8 @@ Modify detection thresholds in configuration:
 Calculation notes:
 - Since the true label is FAKE, all samples NOT classified as FAKE are considered false positives (FP) and false negatives (FN)
 - TP (True Positives) = Number of correctly classified FAKE samples
-- FP = Number of samples incorrectly classified as UNCERTAIN or REAL
-- FN = Number of samples incorrectly classified as UNCERTAIN or REAL
+- FP = Number of samples incorrectly classified as UNCERTAIN or PROBABLY REAL
+- FN = Number of samples incorrectly classified as UNCERTAIN or PROBABLY REAL
 - Precision = TP / (TP + FP)
 - Recall = TP / Total number of samples
 
@@ -183,7 +183,7 @@ The EfficientNetAutoAttB4ST model shows the best performance with the highest pr
   - Uncertain: 0.2 - 0.8
   - Fake: ≥ 0.8
 
-| Video Type | FAKE | UNCERTAIN | REAL | Total | Accuracy (%) |
+| Video Type | PROBABLY FAKE | UNCERTAIN | PROBABLY REAL | Total | Accuracy (%) |
 |------------|------|-----------|------|-------|--------------|
 | **Fake Videos** | 4 | 21 | 28 | 53 | 7.55 |
 | **Real Videos** | 1 | 24 | 28 | 53 | 52.83 |
@@ -239,8 +239,8 @@ The EfficientNetAutoAttB4ST model shows the best performance with the highest pr
 
 ### 5. Output
    - For each model, the script will print the number of predictions in the following categories:
-     - Real
-     - Fake
+     - PROBABLY Real
+     - PROBABLY Fake
      - Uncertain
 
 ### Notes

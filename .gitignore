@@ -170,4 +170,5 @@ video_detector/SDFVD
 video_detector/DeepfakeTIMIT
 video_detector/test.py
 *.csv
-*.DS_Store
+DS_Store
+testEnv/

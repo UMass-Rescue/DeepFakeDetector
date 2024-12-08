@@ -104,8 +104,8 @@ def main():
         print("\nDetection Summary:")
         print(f"Total videos processed: {len(results_df)}")
         print(f"Videos with faces detected: {(results_df['frames_with_faces'] > 0).sum()}")
-        print(f"Videos classified as fake: {(results_df['final_label'] == 'fake').sum()}")
-        print(f"Videos classified as real: {(results_df['final_label'] == 'real').sum()}")
+        print(f"Videos classified as fake: {(results_df['final_label'] == 'probably fake').sum()}")
+        print(f"Videos classified as real: {(results_df['final_label'] == 'probably real').sum()}")
 
 if __name__ == "__main__":
     main()

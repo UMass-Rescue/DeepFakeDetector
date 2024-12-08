@@ -42,9 +42,9 @@ class DeepfakeDetector:
             prob = expit(faces_pred).mean()
             
             if prob <= self.real_threshold:
-                label = 'REAL'
+                label = 'PROBABLY REAL'
             elif prob >= self.fake_threshold:
-                label = 'FAKE'
+                label = 'PROBABLY FAKE'
             else:
                 label = 'UNCERTAIN'
             return {'video_path': os.path.basename(video_path), 'deepfake_probability': prob, 'prediction': label} 

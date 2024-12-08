@@ -162,13 +162,13 @@ class VideoEvaluator:
                         'bbox': {'x': x, 'y': y, 'width': face.width(), 'height': face.height()},
                         'prediction': int(prediction),
                         'confidence': output.tolist(),
-                        'label': 'fake' if prediction == 1 else 'real'
+                        'label': 'probably fake' if prediction == 1 else 'probably real'
                     }
                     frame_results['faces'].append(face_result)
                 
                 if output_mode == 'video':
                     # Annotate frame
-                    label = 'fake' if prediction == 1 else 'real'
+                    label = 'probably fake' if prediction == 1 else 'probably real'
                     color = (0, 255, 0) if prediction == 0 else (0, 0, 255)
                     cv2.putText(image, f"{output.tolist()} => {label}", 
                               (x, y + face.height() + 30), 
@@ -196,7 +196,7 @@ class VideoEvaluator:
                 avg_confidence = sum_confidence / total_predictions
                 
                 # Determine final label
-                final_label = 'fake' if avg_prediction >= 0.5 else 'real'
+                final_label = 'probably fake' if avg_prediction >= 0.5 else 'real'
                 
                 # Update JSON results with summary
                 json_results.update({
@@ -204,8 +204,8 @@ class VideoEvaluator:
                     'frames_with_faces': frames_with_faces,
                     'final_label': final_label,
                     'confidence_scores': {
-                        'real': float(avg_confidence[0]),
-                        'fake': float(avg_confidence[1])
+                        'probably real': float(avg_confidence[0]),
+                        'probably fake': float(avg_confidence[1])
                     },
                     'average_prediction': float(avg_prediction)
                 })
@@ -215,8 +215,8 @@ class VideoEvaluator:
                     'frames_with_faces': 0,
                     'final_label': 'no_faces_detected',
                     'confidence_scores': {
-                        'real': 0.0,
-                        'fake': 0.0
+                        'probably real': 0.0,
+                        'probably fake': 0.0
                     },
                     'average_prediction': 0.0
                 })
