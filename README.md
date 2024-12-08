@@ -1,5 +1,3 @@
-### README.md
-
 # Deepfake Detection Suite
 
 This repository contains tools for detecting deepfakes in **videos** and **images** using state-of-the-art machine learning models. It supports batch processing, configurable thresholds, and high-accuracy predictions.
