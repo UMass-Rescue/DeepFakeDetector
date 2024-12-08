@@ -196,7 +196,7 @@ class VideoEvaluator:
                 avg_confidence = sum_confidence / total_predictions
                 
                 # Determine final label
-                final_label = 'probably fake' if avg_prediction >= 0.5 else 'real'
+                final_label = 'probably fake' if avg_prediction >= 0.5 else 'probably real'
                 
                 # Update JSON results with summary
                 json_results.update({
