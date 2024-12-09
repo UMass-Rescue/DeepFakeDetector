@@ -193,6 +193,9 @@ The EfficientNetAutoAttB4ST model shows the best performance with the highest pr
 2. High uncertainty rates
 3. Uncertainty boundaries could be modified to improve results. Dependant on user requirements.
 
+## Inference Times  
+- **EfficientNetAutoAttB4ST**: Processes 1 second of video in approximately 1 second on an M1 Mac CPU.  
+
 ## Recommended Model
 **EfficientNetAutoAttB4ST** is recommended for future deepfake detection tasks due to its superior performance and low uncertainty rate.
 

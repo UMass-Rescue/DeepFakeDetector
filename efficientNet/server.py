@@ -1,4 +1,5 @@
 
+import argparse
 import os
 from typing import TypedDict
 import pandas as pd
@@ -28,7 +29,7 @@ from detect_deepfakes import run_detection
 
 server = MLServer(__name__)
 
-server.add_app_metadata(name="Video DeepFake Detector", author="UMass Rescue", version="0.1.0", info=load_file_as_string("app_info.md"))
+server.add_app_metadata(name="EfficientNet Video DeepFake Detector", author="UMass Rescue", version="0.1.0", info=load_file_as_string("app_info.md"))
 
 def create_deepfake_detection_task_schema() -> TaskSchema:
     return TaskSchema(
@@ -104,4 +105,9 @@ def detect_deepfake(inputs: DeepfakeDetectionInputs, parameters: DeepfakeDetecti
     return ResponseBody(root=FileResponse(output_type=ResponseType.FILE, file_type=FileType.CSV, path=output_csv, title="Detection Results", subtitle="Deepfake detection CSV results"))
     
 if __name__ == "__main__":
-    server.run()
+    parser = argparse.ArgumentParser(description="Run a server.")
+    parser.add_argument(
+        "--port", type=int, help="Port number to run the server", default=5000
+    )
+    args = parser.parse_args()
+    server.run(port=args.port)

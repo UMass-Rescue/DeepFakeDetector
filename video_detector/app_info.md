@@ -145,6 +145,9 @@ python server.py
   - No false positives
   - 100% accuracy
 
+## Inference Times  
+- Processes 1 second of video in approximately 10 seconds on an M1 Mac CPU. Dependent on frame-rate.
+
 # Instructions to Generate Metrics
 
 1. **Dataset**: You need one of the following datasets:

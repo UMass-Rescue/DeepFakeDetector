@@ -1,3 +1,4 @@
+import argparse
 import os
 from typing import TypedDict
 from flask_ml.flask_ml_server import MLServer, load_file_as_string
@@ -29,7 +30,7 @@ import json
 server = MLServer(__name__)
 
 server.add_app_metadata(
-    name="Video DeepFake Detector",
+    name="XceptionNet Video DeepFake Detector",
     author="UMass Rescue",
     version="0.1.0",
     info=load_file_as_string("app_info.md"),
@@ -162,4 +163,9 @@ def detect_deepfake(inputs: DeepfakeDetectionInputs, parameters: DeepfakeDetecti
 
 if __name__ == "__main__":
     # Run the server
-    server.run()
+    parser = argparse.ArgumentParser(description="Run a server.")
+    parser.add_argument(
+        "--port", type=int, help="Port number to run the server", default=5000
+    )
+    args = parser.parse_args()
+    server.run(port=args.port)
