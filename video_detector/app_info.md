@@ -131,12 +131,14 @@ python server.py
 ## Experimental Setup
 - **Dataset**: Deepfake TIMIT
 
-## Model Performance Comparison
 
-| Data       | FAKE | REAL | Total | Accuracy (%) |
-|-------------|------|-----------|------|-------|--------------|
-| **Higher Quality** | 320  | 0    | 320   | 100.0        |
-| **Lower Quality** | 320  | 0    | 320   | 100.0        |
+## Model Performance Comparison  
+
+| Data             | FAKE | REAL | Total | Accuracy (%) |  
+|-------------------|------|------|-------|--------------|  
+| **Higher Quality** | 320  | 0    | 320   | 100.0        |  
+| **Lower Quality**  | 320  | 0    | 320   | 100.0        |  
+
 
 ## Detailed Analysis
 - **Higher Quality Videos**:
